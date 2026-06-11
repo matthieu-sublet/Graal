@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart'; // L'import est bien tout en haut !
+
 import 'models/player_state.dart';
 import 'utils/book_parser.dart';
 import 'screens/chapter_screen.dart';
 
 void main() {
   runApp(
-    // On injecte l'état du personnage dans toute l'application
     ChangeNotifierProvider(
       create: (context) => PlayerState(),
       child: const MonApplication(),
     ),
   );
 }
-
-import 'package:google_fonts/google_fonts.dart'; // Ajoute cet import en haut
 
 class MonApplication extends StatelessWidget {
   const MonApplication({super.key});
@@ -23,22 +22,20 @@ class MonApplication extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Quête du Graal',
-      debugShowCheckedModeBanner: false, // Retire le petit bandeau "DEBUG"
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Couleurs principales (Fond parchemin, textes sombres)
         scaffoldBackgroundColor: const Color(0xFFF6F1E3), 
         colorScheme: const ColorScheme.light(
-          primary: Color(0xFF5A2A22), // Un rouge/brun profond pour les accents
+          primary: Color(0xFF5A2A22), 
           onPrimary: Colors.white,
-          surface: Color(0xFFEBE3D1), // Parchemin un peu plus sombre pour les boutons
-          onSurface: Color(0xFF2C2621), // Couleur de l'encre (presque noir)
+          surface: Color(0xFFEBE3D1), 
+          onSurface: Color(0xFF2C2621), 
         ),
-        // On applique la police Lora à toute l'application
         textTheme: GoogleFonts.loraTextTheme(
           Theme.of(context).textTheme,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1A17), // App bar très sombre
+          backgroundColor: Color(0xFF1E1A17), 
           foregroundColor: Color(0xFFF6F1E3),
           elevation: 4,
           centerTitle: true,
@@ -48,7 +45,6 @@ class MonApplication extends StatelessWidget {
     );
   }
 }
-
 
 class MenuPrincipal extends StatelessWidget {
   const MenuPrincipal({super.key});
@@ -60,14 +56,17 @@ class MenuPrincipal extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF5A2A22),
+            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-            textStyle: const TextStyle(fontSize: 20),
+            textStyle: const TextStyle(fontSize: 20, letterSpacing: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
           onPressed: () async {
-            // 1. Analyse automatique du fichier Markdown
             final gameBook = await BookParser.parseMarkdownFile('assets/livre.md');
             
-            // 2. Lancement du premier chapitre
             if (context.mounted) {
               Navigator.push(
                 context,
@@ -75,7 +74,6 @@ class MenuPrincipal extends StatelessWidget {
                   builder: (context) => ChapterScreen(
                     chapter: gameBook.histoire.first,
                     onNextChapter: () {
-                      // 3. Bascule vers l'aventure interactive au clic sur Continuer
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -94,7 +92,7 @@ class MenuPrincipal extends StatelessWidget {
               );
             }
           },
-          child: const Text("Commencer l'Aventure"),
+          child: const Text("COMMENCER L'AVENTURE"),
         ),
       ),
     );
