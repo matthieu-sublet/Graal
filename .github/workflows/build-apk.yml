@@ -1,7 +1,5 @@
 name: Génération de l'APK Android
 
-# Le workflow se déclenche à chaque "push" sur la branche principale, 
-# ou manuellement via le bouton "Run workflow" sur GitHub.
 on:
   push:
     branches:
@@ -12,14 +10,13 @@ on:
 jobs:
   build:
     name: Build APK
-    # On utilise une machine virtuelle Ubuntu fournie par GitHub
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Récupération du code
         uses: actions/checkout@v4
 
-      - name: ☕ Configuration de Java (Requis pour Android)
+      - name: ☕ Configuration de Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
@@ -29,18 +26,19 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # Flutter se mettra automatiquement sur la dernière version stable
 
       - name: 📦 Installation des dépendances
         run: flutter pub get
 
+      - name: 🏗️ Réparation de l'architecture du projet
+        # Cette commande magique recrée les dossiers android/ et ios/ s'ils manquent
+        run: flutter create .
+
       - name: 🛠️ Compilation de l'APK
-        # L'option --release permet d'optimiser et d'alléger l'application
         run: flutter build apk --release
 
-      - name: 📤 Sauvegarde de l'APK généré (Artifact)
+      - name: 📤 Sauvegarde de l'APK généré
         uses: actions/upload-artifact@v4
         with:
           name: quete-du-graal-apk
-          # C'est le chemin standard où Flutter range l'APK une fois compilé
           path: build/app/outputs/flutter-apk/app-release.apk
