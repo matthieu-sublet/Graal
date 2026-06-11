@@ -49,35 +49,61 @@ class _ChapterScreenState extends State<ChapterScreen> {
     );
   }
 
+    /// VUE 1 : Affichage d'un chapitre narratif linéaire
   Widget _buildNarrationView() {
     return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: MarkdownBody(
               data: widget.chapter.contenu ?? "Contenu introuvable.",
               styleSheet: MarkdownStyleSheet(
-                p: const TextStyle(fontSize: 16, height: 1.5),
+                p: const TextStyle(
+                  fontSize: 18, // Texte plus grand
+                  height: 1.6, // Plus d'espace entre les lignes
+                  color: Color(0xFF2C2621),
+                  letterSpacing: 0.3,
+                ),
+                strong: const TextStyle(fontWeight: FontWeight.w900),
               ),
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
+        Container(
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).scaffoldBackgroundColor.withOpacity(0.0),
+                Theme.of(context).scaffoldBackgroundColor,
+              ],
+            ),
+          ),
           child: ElevatedButton(
             onPressed: widget.onNextChapter,
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 56),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Boutons moins ronds, plus "livre"
+              ),
             ),
-            child: const Text("Continuer"),
+            child: const Text(
+              "CONTINUER", 
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2)
+            ),
           ),
         ),
       ],
     );
   }
 
+  /// VUE 2 : Affichage d'un chapitre jouable avec des choix
   Widget _buildInteractiveView() {
     final paragraph = widget.chapter.paragraphes?.firstWhere(
       (p) => p.id == currentParagraphId,
@@ -85,26 +111,38 @@ class _ChapterScreenState extends State<ChapterScreen> {
     );
 
     if (paragraph == null || paragraph.id == 'error') {
-      return const Center(child: Text("Erreur : Impossible de charger le paragraphe."));
+      return const Center(child: Text("Erreur de chargement."));
     }
 
     return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Paragraphe ${paragraph.id}",
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                // Un grand numéro stylisé pour le paragraphe
+                Center(
+                  child: Text(
+                    paragraph.id,
+                    style: TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w900,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontFamily: 'Georgia', // Une touche très "vieux livre" pour les chiffres
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 32),
                 MarkdownBody(
                   data: paragraph.text,
                   styleSheet: MarkdownStyleSheet(
-                    p: const TextStyle(fontSize: 16, height: 1.5),
+                    p: const TextStyle(
+                      fontSize: 18, 
+                      height: 1.6,
+                      color: Color(0xFF2C2621),
+                    ),
                   ),
                 ),
               ],
@@ -113,11 +151,12 @@ class _ChapterScreenState extends State<ChapterScreen> {
         ),
         if (paragraph.choices != null && paragraph.choices!.isNotEmpty)
           Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -3))
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(top: BorderSide(color: Colors.black.withOpacity(0.1), width: 1)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))
               ],
             ),
             child: Column(
@@ -125,20 +164,27 @@ class _ChapterScreenState extends State<ChapterScreen> {
               mainAxisSize: MainAxisSize.min,
               children: paragraph.choices!.map((choice) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: OutlinedButton(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: ElevatedButton(
                     onPressed: () {
                       setState(() {
                         currentParagraphId = choice.nextId;
                       });
                     },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEBE3D1), // Bouton couleur papier
+                      foregroundColor: const Color(0xFF2C2621), // Texte sombre
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      elevation: 1,
+                      side: BorderSide(color: Colors.black.withOpacity(0.2)), // Petite bordure fine
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     child: Text(
                       choice.text,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.4),
                     ),
                   ),
                 );
@@ -148,4 +194,5 @@ class _ChapterScreenState extends State<ChapterScreen> {
       ],
     );
   }
+
 }
