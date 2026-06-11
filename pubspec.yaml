@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   flutter_markdown: ^0.6.18
   provider: ^6.1.2
+  google_fonts: ^6.1.0
 
 flutter:
   uses-material-design: true
