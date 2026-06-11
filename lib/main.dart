@@ -14,6 +14,8 @@ void main() {
   );
 }
 
+import 'package:google_fonts/google_fonts.dart'; // Ajoute cet import en haut
+
 class MonApplication extends StatelessWidget {
   const MonApplication({super.key});
 
@@ -21,14 +23,32 @@ class MonApplication extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Quête du Graal',
+      debugShowCheckedModeBanner: false, // Retire le petit bandeau "DEBUG"
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFFFDFBF7), // Fond style vieux papier
+        // Couleurs principales (Fond parchemin, textes sombres)
+        scaffoldBackgroundColor: const Color(0xFFF6F1E3), 
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF5A2A22), // Un rouge/brun profond pour les accents
+          onPrimary: Colors.white,
+          surface: Color(0xFFEBE3D1), // Parchemin un peu plus sombre pour les boutons
+          onSurface: Color(0xFF2C2621), // Couleur de l'encre (presque noir)
+        ),
+        // On applique la police Lora à toute l'application
+        textTheme: GoogleFonts.loraTextTheme(
+          Theme.of(context).textTheme,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E1A17), // App bar très sombre
+          foregroundColor: Color(0xFFF6F1E3),
+          elevation: 4,
+          centerTitle: true,
+        ),
       ),
       home: const MenuPrincipal(),
     );
   }
 }
+
 
 class MenuPrincipal extends StatelessWidget {
   const MenuPrincipal({super.key});
