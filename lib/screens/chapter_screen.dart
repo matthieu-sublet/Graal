@@ -162,10 +162,15 @@ class _ChapterScreenState extends State<ChapterScreen> {
                   child: Text(paragraph.id, style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary, fontFamily: 'Georgia')),
                 ),
                 const SizedBox(height: 32),
-                MarkdownBody(
-                  data: paragraph.text,
-                  styleSheet: MarkdownStyleSheet(p: const TextStyle(fontSize: 18, height: 1.6, color: Color(0xFF2C2621))),
-                ),
+                // Cherche cette partie dans ton fichier chapter_screen.dart et ajoute le textAlign :
+MarkdownBody(
+  data: paragraph.text, // ou widget.chapter.contenu
+  styleSheet: MarkdownStyleSheet(
+    p: const TextStyle(fontSize: 18, height: 1.6, color: Color(0xFF2C2621)),
+    textAlign: WrapAlignment.wrap, // Assure que le texte prend bien toute la place
+  ),
+),
+
                 
                 // --- ZONE DE COMBAT VISUELLE ---
                 if (isCombatInitialized && enemyHp != null) ...[
