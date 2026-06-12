@@ -3,10 +3,19 @@ import '../models/book_models.dart';
 
 class BookParser {
   static Future<GameBook> parseMarkdownFile(String path) async {
-    final String content = await rootBundle.loadString(path);
+    final String rawContent = await rootBundle.loadString(path);
 
-    final expParagraphe = RegExp(r'(?:##\s*)?\*\*(\d+)\*\*');
-    final expChoix = RegExp(r'rendez[- ]vous au (\d+)', caseSensitive: false);
+    // 1. D'abord, on "nettoie" complètement le texte de tous les déchets de l'OCR
+    final String content = _cleanOcrText(rawContent);
+
+    // 2. Les nouvelles expressions régulières (beaucoup plus précises)
+    // On exige que le numéro (ex: **14**) soit au DÉBUT d'une ligne pour être un vrai paragraphe
+    final expParagraphe = RegExp(r'^\s*(?:##\s*)?\*\*(\d+)\*\*', multiLine: true);
+    
+    // On capture toutes les tournures du livre : "rendez-vous au 14", "rendez-vous donc au 3", etc.
+    final expChoix = RegExp(r'rendez\s*[- ]\s*vous(?:\s+donc|\s+directement)?\s+au\s+\**(\d+)\**', caseSensitive: false);
+    
+    // On capture la vie des monstres
     final expEnnemi = RegExp(r'([A-Za-zÀ-ÖØ-öø-ÿ\s]+)\s*:\s*(\d+)\s*POINTS\s*DE\s*VIE', caseSensitive: false);
 
     final matches = expParagraphe.allMatches(content).toList();
@@ -14,19 +23,19 @@ class BookParser {
 
     String introText = "Introduction introuvable.";
     if (matches.isNotEmpty) {
-      introText = _cleanOcrText(content.substring(0, matches.first.start));
+      introText = content.substring(0, matches.first.start).trim();
     }
 
     for (int i = 0; i < matches.length; i++) {
       final match = matches[i];
-      final id = match.group(1)!;
+      final id = match.group(1)!; // Le numéro du paragraphe
 
       final start = match.end;
       final end = (i + 1 < matches.length) ? matches[i + 1].start : content.length;
       
-      // On extrait et on NETTOIE le texte du paragraphe
-      String textBloc = _cleanOcrText(content.substring(start, end));
+      String textBloc = content.substring(start, end).trim();
 
+      // Vérifie s'il y a un monstre
       final matchEnnemi = expEnnemi.firstMatch(textBloc);
       Enemy? enemyInParagraph;
       if (matchEnnemi != null) {
@@ -36,10 +45,17 @@ class BookParser {
         );
       }
 
+      // Génère les choix pour les boutons
       final choiceMatches = expChoix.allMatches(textBloc);
       List<Choice> choices = [];
+      Set<String> nextIdsFound = {}; // Pour éviter les boutons en double
+      
       for (final cMatch in choiceMatches) {
-        choices.add(Choice(text: "Aller au paragraphe ${cMatch.group(1)!}", nextId: cMatch.group(1)!));
+        final nextId = cMatch.group(1)!;
+        if (!nextIdsFound.contains(nextId)) {
+          choices.add(Choice(text: "ALLER AU $nextId", nextId: nextId));
+          nextIdsFound.add(nextId);
+        }
       }
 
       paragraphesJouables.add(Paragraph(
@@ -60,22 +76,24 @@ class BookParser {
     );
   }
 
-  /// Fonction utilitaire pour nettoyer les erreurs de scan (OCR)
+  /// Le "Nettoyeur" automatique de déchets OCR
   static String _cleanOcrText(String rawText) {
-    String cleanText = rawText.trim();
+    String cleanText = rawText;
     
-    // 1. Retire les artefacts de scan courants (tu pourras en ajouter ici si besoin)
-    cleanText = cleanText.replaceAll(RegExp(r'\[—\]'), '-');
-    cleanText = cleanText.replaceAll(RegExp(r'\s+[|~]\s+'), ' ');
+    // 1. Détruire les énormes blocs d'images factices
+    cleanText = cleanText.replaceAll(RegExp(r'\*\*==> picture.*?<==\*\*', dotAll: true), '');
+    cleanText = cleanText.replaceAll(RegExp(r'\*\*-----\s*Start of picture text\s*-----\*\*.*?\*\*-----\s*End of picture text\s*-----\*\*', dotAll: true), '');
+    
+    // 2. Transformer les balises HTML qui traînent en simples espaces
+    cleanText = cleanText.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ');
 
-    // 2. Le plus important : Remplacer les simples retours à la ligne par des espaces
-    // (Cela permet au texte de s'adapter à la largeur de ton téléphone)
-    // Mais on conserve les doubles retours à la ligne qui sont de vrais paragraphes.
+    // 3. Réparer les phrases coupées en plein milieu (les simples sauts de ligne)
+    // On conserve les doubles sauts de ligne qui sont de vrais paragraphes.
     cleanText = cleanText.replaceAll(RegExp(r'(?<!\n)\n(?!\n)'), ' ');
 
-    // 3. Supprimer les espaces multiples créés par l'étape précédente
+    // 4. Nettoyer les espaces en trop
     cleanText = cleanText.replaceAll(RegExp(r' {2,}'), ' ');
 
-    return cleanText;
+    return cleanText.trim();
   }
 }
